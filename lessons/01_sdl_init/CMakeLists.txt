@@ -6,4 +6,4 @@ set(SOURCE main.cpp)
 
 add_executable(01_sdl_init ${SOURCE})
 
-target_link_libraries(01_sdl_init SDL2)
+target_link_libraries(01_sdl_init ${COMMON_LIBS})

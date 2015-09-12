@@ -9,7 +9,11 @@ project(${PROJECT_NAME})
 SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin/)
 SET(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib/)
 
+option(USE_OPENGL "Activate opengl usage" ON)
+
+if(USE_OPENGL)
 add_definitions(-DOPENGL)
+endif()
 
 include_directories(
         ${CMAKE_CURRENT_SOURCE_DIR}

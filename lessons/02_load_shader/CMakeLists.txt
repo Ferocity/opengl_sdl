@@ -6,4 +6,4 @@ set(SOURCE main.cpp)
 
 add_executable(02_load_shader ${SOURCE})
 
-target_link_libraries(02_load_shader SDL2 GLEW)
+target_link_libraries(02_load_shader ${COMMON_LIBS})
