@@ -23,17 +23,22 @@ cmake_minimum_required(VERSION 2.8)
 
 include(ExternalProject)
 
-# SDL TEST Suite
-
-set(SDL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/SDL")
-set(SDL_INSTALL_DIR "${CMAKE_BINARY_DIR}/SDL")
-set(SDL_CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${SDL_INSTALL_DIR})
-
-ExternalProject_Add(SDL
-  PREFIX ${SDL_PREFIX}
+# Download SDL
+ExternalProject_Add(EXT_SDL
+  PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/SDL"
   URL https://www.libsdl.org/release/SDL2-2.0.3.tar.gz
   BUILD_COMMAND make all COMMAND echo done
 #  UPDATE_COMMAND ""
   INSTALL_COMMAND make install
-  CMAKE_ARGS ${SDL_CMAKE_ARGS}
+  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX="${CMAKE_BINARY_DIR}/SDL"
+)
+
+# DOWNLOAD GLEW
+ExternalProject_Add(EXT_GLEW
+  PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/GLEW"
+  GIT_REPOSITORY https://github.com/nigels-com/glew.git
+  CONFIGURE_COMMAND make extensions
+  BUILD_IN_SOURCE true
+  BUILD_COMMAND make
+  INSTALL_COMMAND make install DESTDIR=${CMAKE_BINARY_DIR}/GLEW
 )

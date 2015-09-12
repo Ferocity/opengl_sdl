@@ -1,5 +1,5 @@
-SDL OpenGL Tutorial Lessions
-============================
+SDL OpenGL tutorials
+====================
 
 [![Build Status](https://drone.io/github.com/Ferocity/opengl_sdl/status.png)](https://drone.io/github.com/Ferocity/opengl_sdl/latest)
 
@@ -7,15 +7,10 @@ SDL OpenGL Tutorial Lessions
 Dependencies
 ------------
 
-OpenGL:
 ```
-sudo apt-get install libglew-dev
+sudo apt-get install cmake 
 ```
 
-OpenGL ES2.0:
-```
-sudo apt-get install libgles20
-```
 
 
 Build

@@ -19,9 +19,14 @@ include_directories(
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/sdl/include
         ${CMAKE_BINARY_DIR}/SDL/include/
+        ${CMAKE_BINARY_DIR}/GLEW/usr/include/
         )
 
-link_directories(${CMAKE_BINARY_DIR}/SDL/lib/)
+link_directories(
+        ${CMAKE_BINARY_DIR}/SDL/lib/
+        ${CMAKE_BINARY_DIR}/GLEW/usr/lib64
+        ${CMAKE_BINARY_DIR}/GLEW/usr/lib
+        )
 
 add_subdirectory(thirdparty)
 add_subdirectory(lessons)
