@@ -1,0 +1,40 @@
+#######################################
+### Author: Christian Fries
+### Copyright 2015 @Christian Fries
+#######################################
+
+#INCLUDE(CMakeForceCompiler)
+
+set(CMAKE_SYSTEM_NAME Linux)
+
+set(PLATFORM linux)
+set(ARCH x64)
+
+set(CMAKE_SYSTEM_VERSION 1)
+# where is the target environment
+set(CMAKE_FIND_ROOT_PATH /usr/lib/gcc/x86_64-linux-gnu/ )
+
+set(CMAKE_C_COMPILER   gcc)
+set(CMAKE_CXX_COMPILER g++)
+
+# search for programs in the build host directories
+#set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+# for libraries and headers in the target directories
+#set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+#set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+
+set(ADDITIONAL_LINKER_FLAGS "-pthread")
+set(COMPILER_WARNINGS "-Wall -Wextra -Wreturn-type")
+
+set(CMAKE_C_FLAGS   "-std=c11 ${COMPILER_WARNINGS}"
+    CACHE STRINGS "" FORCE)
+set(CMAKE_CXX_FLAGS "-std=c++11 -frtti ${COMPILER_WARNINGS} ${ADDITIONAL_LINKER_FLAGS}"
+    CACHE STRINGS "" FORCE)
+
+
+set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 ${CMAKE_CXX_FLAGS}"
+    CACHE STRINGS "" FORCE)
+set(CMAKE_CXX_FLAGS_RELEASE "-O2 ${CMAKE_CXX_FLAGS}"
+    CACHE STRINGS "" FORCE)
+
+

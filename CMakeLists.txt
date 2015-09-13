@@ -1,5 +1,15 @@
 cmake_minimum_required(VERSION 2.8)
 
+
+set(MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+set(CMAKE_MODULE_PATH ${MODULE_PATH})
+
+if("${CMAKE_TOOLCHAIN_FILE}" STREQUAL "")
+    set(CMAKE_TOOLCHAIN_FILE "${MODULE_PATH}/linux-gcc-x64.toolchain")
+endif()
+MESSAGE(STATUS "Using Toolchainfile: ${CMAKE_TOOLCHAIN_FILE}")
+
+
 SET(PROJECT_NAME "opengl_sdl")
 
 #set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/)
