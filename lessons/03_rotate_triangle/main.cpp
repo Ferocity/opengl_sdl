@@ -22,17 +22,7 @@
  * SOFTWARE.
  */
 
-#ifdef OPENGL
-#include <GL/glew.h>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_opengl.h>
-#elif defined OPENGLES20
-#include <GLES2/gl2.h>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_opengles2.h>
-#else
-    #error("Unsupported Platform")
-#endif
+#include "framework/renderer.h"
 
 #include <cstdio>
 
@@ -57,98 +47,6 @@ const GLchar fragmentShaderSrc[] =
 "	gl_FragColor = v_color; \n"
 "} 							\n";
 
-
-/*
- * load and compile source shader
-*/
-int loadShader(GLenum type, const GLchar* shaderSrc)
-{
-    GLuint shader = glCreateShader(type);
-    if(0 == shader)
-    {
-        fprintf(stderr,"Shader creation failed!\n");
-        return 0;
-    }
-
-    glShaderSource(shader, 1, &shaderSrc, NULL);
-
-    glCompileShader(shader);
-
-    GLint compiled;
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
-    if(0 == compiled)
-    {
-        GLint infoLen = 0;
-        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLen);
-        if(infoLen > 1)
-        {
-            GLchar errorLog[infoLen];
-            glGetShaderInfoLog(shader, infoLen, NULL, errorLog);
-            fprintf(stderr,"Error: %s\n", errorLog);
-        }
-        glDeleteShader(shader);
-        return 0;
-    }
-    return shader;
-}
-
-int loadGLSLProgram()
-{
-    GLuint program = 0;
-
-    int vertexShader = loadShader(GL_VERTEX_SHADER, vertexShaderSrc);
-    int fragmentShader = loadShader(GL_FRAGMENT_SHADER, fragmentShaderSrc);
-
-    if( vertexShader == 0 || fragmentShader == 0)
-    {
-        goto cleanup;
-    }
-
-    program = glCreateProgram();
-
-    if(0 == program)
-    {
-        goto cleanup;
-    }
-
-    glAttachShader(program, vertexShader);
-    glAttachShader(program, fragmentShader);
-
-    // Bind a_position to attribute 0
-    glBindAttribLocation(program, 0, "a_position");
-    // Bind a_color to attribute 1
-    glBindAttribLocation(program, 1, "a_color");
-
-    glLinkProgram(program);
-
-    GLint linked;
-    glGetProgramiv(program, GL_LINK_STATUS, &linked);
-    if(0 == linked)
-    {
-        GLint errLen = 0;
-        glGetProgramiv(program, GL_INFO_LOG_LENGTH, &errLen);
-        if(1 < errLen)
-        {
-            GLchar errorLog[errLen];
-            glGetProgramInfoLog(program, errLen, NULL, errorLog);
-            fprintf(stderr,"Error: %s\n", errorLog);
-        }
-        glDeleteProgram(program);
-        return 0;
-    }
-
-cleanup:
-
-    if(vertexShader != 0)
-    {
-        glDeleteShader(vertexShader);
-    }
-    if(fragmentShader != 0)
-    {
-        glDeleteShader(fragmentShader);
-    }
-    return program;
-}
 
 void draw(int programID)
 {
@@ -178,69 +76,59 @@ void draw(int programID)
 
 int main()
 {
-    // Initialize SDL
-    if(0 != SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_EVENTS))
+    Renderer renderApi;
+
+    // Init SDL
+    if(false == renderApi.init("03_rotate_triangle"))
     {
-        fprintf(stderr,"Could not initialize video system: %s\n", SDL_GetError());
         return EXIT_FAILURE;
     }
 
-    SDL_Window* window = SDL_CreateWindow(
-                "Example 02_load_shader",
-                SDL_WINDOWPOS_UNDEFINED,
-                SDL_WINDOWPOS_UNDEFINED,
-                640,
-                480,
-                SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
-                );
-
-    if(!window)
+    // Create Rendercontext
+    if(false == renderApi.createContext())
     {
-        fprintf(stderr,"Could not create window: %s\n", SDL_GetError());
         return EXIT_FAILURE;
     }
 
-    SDL_GLContext glcontext = SDL_GL_CreateContext(window);
+    /***********************
+     * Start Rendering
+     **********************/
 
-#ifdef OPENGL
-    glewExperimental = true;	// fix crash on mac os
-    if(GLEW_OK != glewInit())
-    {
-        fprintf(stderr,"GLEW could not be initialized!\n");
-        return EXIT_FAILURE;
-    }
-#endif
+    Shader vertexShader(Shader::Type::VERTEX, vertexShaderSrc, sizeof(vertexShaderSrc));
+    Shader fragmentShader(Shader::Type::FRAGMENT,fragmentShaderSrc, sizeof(fragmentShaderSrc));
 
-    glClearColor(0.0f,0.0f,0.0f,1.0f);
+    renderApi.createProgram("DefaultShader", &vertexShader, &fragmentShader);
 
-    SDL_Event e;
-    float x = 0.0, y = 30.0;
-
-    int program = loadGLSLProgram();
+    int program = renderApi.loadProgram("DefaultShader");
     if(0 == program)
     {
         return EXIT_FAILURE;
     }
 
+    SDL_Event e;
     while(e.type != SDL_KEYDOWN
           && e.type != SDL_QUIT)
     {
-
         SDL_PollEvent(&e);
 
         glClear(GL_COLOR_BUFFER_BIT);
 
         draw(program);
 
-        SDL_GL_SwapWindow(window);
+        renderApi.swapBuffer();
         SDL_Delay(10);
     }
 
-    glDeleteProgram(program);
+    renderApi.unloadProgram("DefaultShader");
 
-    SDL_GL_DeleteContext(glcontext);
+    if(false == renderApi.destroyContext())
+    {
+        return EXIT_FAILURE;
+    }
 
-    SDL_DestroyWindow(window);
-    SDL_Quit();
+    if(false == renderApi.deInit())
+    {
+        return EXIT_FAILURE;
+    }
     return EXIT_SUCCESS;
 }
