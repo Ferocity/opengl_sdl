@@ -213,15 +213,13 @@ int main()
 
     glClearColor(0.0f,0.0f,0.0f,1.0f);
 
-    SDL_Event e;
-    float x = 0.0, y = 30.0;
-
     int program = loadGLSLProgram();
     if(0 == program)
     {
         return EXIT_FAILURE;
     }
 
+    SDL_Event e;
     while(e.type != SDL_KEYDOWN
           && e.type != SDL_QUIT)
     {
