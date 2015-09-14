@@ -1,3 +1,27 @@
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2015 Christian Fries
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 #include "framework/renderer.h"
 #include <assert.h>
 
@@ -94,7 +118,8 @@ bool Renderer::createProgram(const std::string& name,
 
     struct GLSLProgram prog = {
         .s_vertex  = vertex,
-        .s_fragment = fragment
+        .s_fragment = fragment,
+        .s_programId = 0
     };
 
     m_programs[name] = prog;
@@ -103,20 +128,19 @@ bool Renderer::createProgram(const std::string& name,
 }
 
 
-unsigned int Renderer::loadProgram(const std::string& name)
+bool Renderer::loadProgram(const std::string& name)
 {
     // FIXME better error handling, use exceptions instead of goto's
-    GLuint program = 0;
-
     auto iter = m_programs.find(name);
     if(iter == m_programs.end())
     {
         // Not found
-        return 0;
+        return false;
     }
 
-    iter->second.s_vertex->load();
-    iter->second.s_fragment->load();
+    struct GLSLProgram &program = iter->second;
+    program.s_vertex->load();
+    program.s_fragment->load();
 
     int vertexShader = iter->second.s_vertex->getId();
     int fragmentShader = iter->second.s_fragment->getId();
@@ -126,37 +150,37 @@ unsigned int Renderer::loadProgram(const std::string& name)
         goto cleanup;
     }
 
-    program = glCreateProgram();
+    program.s_programId = glCreateProgram();
 
-    if(0 == program)
+    if(0 == program.s_programId)
     {
         goto cleanup;
     }
 
-    glAttachShader(program, vertexShader);
-    glAttachShader(program, fragmentShader);
+    glAttachShader(program.s_programId, vertexShader);
+    glAttachShader(program.s_programId, fragmentShader);
 
     // Bind a_position to attribute 0
-    glBindAttribLocation(program, 0, "a_position");
+    glBindAttribLocation(program.s_programId, 0, "a_position");
     // Bind a_color to attribute 1
-    glBindAttribLocation(program, 1, "a_color");
+    glBindAttribLocation(program.s_programId, 1, "a_color");
 
-    glLinkProgram(program);
+    glLinkProgram(program.s_programId);
 
     GLint linked;
-    glGetProgramiv(program, GL_LINK_STATUS, &linked);
+    glGetProgramiv(program.s_programId, GL_LINK_STATUS, &linked);
     if(0 == linked)
     {
         GLint errLen = 0;
-        glGetProgramiv(program, GL_INFO_LOG_LENGTH, &errLen);
+        glGetProgramiv(program.s_programId, GL_INFO_LOG_LENGTH, &errLen);
         if(1 < errLen)
         {
             GLchar errorLog[errLen];
-            glGetProgramInfoLog(program, errLen, NULL, errorLog);
+            glGetProgramInfoLog(program.s_programId, errLen, NULL, errorLog);
             fprintf(stderr,"Error: %s\n", errorLog);
         }
-        glDeleteProgram(program);
-        return 0;
+        glDeleteProgram(program.s_programId);
+        return false;
     }
 
 cleanup:
@@ -169,10 +193,30 @@ cleanup:
     {
         glDeleteShader(fragmentShader);
     }
-    return program;
+
+    return true;	// FIXME could also be error, atm!
 }
+
+unsigned int Renderer::getProgram(const std::string& name)
+{
+    auto iter = m_programs.find(name);
+    if(iter == m_programs.end())
+    {
+        // Not found
+        return 0;
+    }
+    return iter->second.s_programId;
+}
+
 
 void Renderer::unloadProgram(const std::string& name)
 {
-    // TODO
+    auto iter = m_programs.find(name);
+    if(iter == m_programs.end())
+    {
+        // Not found
+        return;
+    }
+    glDeleteProgram(iter->second.s_programId);
+    iter->second.s_programId = 0;
 }

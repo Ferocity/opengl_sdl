@@ -99,11 +99,12 @@ int main()
 
     renderApi.createProgram("DefaultShader", &vertexShader, &fragmentShader);
 
-    int program = renderApi.loadProgram("DefaultShader");
-    if(0 == program)
+    if(false == renderApi.loadProgram("DefaultShader"))
     {
         return EXIT_FAILURE;
     }
+
+    unsigned int program = renderApi.getProgram("DefaultShader");
 
     SDL_Event e;
     while(e.type != SDL_KEYDOWN
