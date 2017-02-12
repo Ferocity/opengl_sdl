@@ -1,8 +1,6 @@
 SDL OpenGL tutorials
 ====================
 
-[![Build Status](https://drone.io/github.com/Ferocity/opengl_sdl/status.png)](https://drone.io/github.com/Ferocity/opengl_sdl/latest)
-
 
 Dependencies
 ------------
